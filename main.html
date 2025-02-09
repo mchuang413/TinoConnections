@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connections Puzzle</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f8f8f8;
+        }
+        .title {
+            font-weight: bold;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tile {
+            background: #eee;
+            padding: 20px;
+            text-align: center;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .completed-group {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+            text-align: center;
+        }
+        .completed-title {
+            grid-column: span 4;
+            font-weight: normal;
+            margin-bottom: 5px;
+        }
+        .button-container {
+            margin-top: 20px;
+        }
+        .button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="title">Connections Puzzle</div>
+        <div id="completed-groups"></div>
+        <div class="grid" id="grid"></div>
+        <div class="button-container">
+            <button class="button" onclick="shuffleTiles()">Shuffle</button>
+            <button class="button" onclick="submitSelection()">Submit</button>
+        </div>
+    </div>
+    <script>
+        const groups = [
+            { name: "Sad Words", words: ["BLUE", "DOWN", "HANGDOG", "SORRY"], color: "#FFD700" },
+            { name: "Birds", words: ["SWALLOW", "PARTRIDGE", "DUCK", "GROUSE"], color: "#87CEEB" },
+            { name: "Cheeses", words: ["SWISS", "MUNSTER", "GRIFFIN", "MART"], color: "#FFA07A" },
+            { name: "Words with Pop", words: ["POP", "PICKLES", "HAWK", "STREET"], color: "#98FB98" }
+        ];
+        let tiles = groups.flatMap(group => group.words).sort(() => Math.random() - 0.5);
+        let selectedTiles = [];
+        let completed = [];
+        
+        function renderGrid() {
+            const grid = document.getElementById("grid");
+            grid.innerHTML = "";
+            tiles.forEach(word => {
+                const tile = document.createElement("div");
+                tile.classList.add("tile");
+                tile.textContent = word;
+                tile.onclick = () => selectTile(tile);
+                grid.appendChild(tile);
+            });
+        }
+
+        function selectTile(tile) {
+            if (selectedTiles.includes(tile.textContent)) {
+                selectedTiles = selectedTiles.filter(t => t !== tile.textContent);
+                tile.style.background = "#eee";
+            } else if (selectedTiles.length < 4) {
+                selectedTiles.push(tile.textContent);
+                tile.style.background = "#ccc";
+            }
+        }
+
+        function submitSelection() {
+            if (selectedTiles.length !== 4) return;
+            
+            const matchedGroup = groups.find(group =>
+                selectedTiles.every(word => group.words.includes(word))
+            );
+            
+            if (matchedGroup && !completed.some(g => g.name === matchedGroup.name)) {
+                completed.push(matchedGroup);
+                tiles = tiles.filter(word => !matchedGroup.words.includes(word));
+                renderCompletedGroups();
+                renderGrid();
+            }
+            selectedTiles = [];
+        }
+
+        function renderCompletedGroups() {
+            const completedDiv = document.getElementById("completed-groups");
+            completedDiv.innerHTML = "";
+            completed.forEach(group => {
+                const groupDiv = document.createElement("div");
+                groupDiv.classList.add("completed-group");
+                groupDiv.style.background = group.color;
+                
+                const titleDiv = document.createElement("div");
+                titleDiv.classList.add("completed-title");
+                titleDiv.textContent = group.name;
+                groupDiv.appendChild(titleDiv);
+                
+                group.words.forEach(word => {
+                    const tile = document.createElement("div");
+                    tile.classList.add("tile");
+                    tile.textContent = word;
+                    groupDiv.appendChild(tile);
+                });
+                
+                completedDiv.appendChild(groupDiv);
+            });
+        }
+
+        function shuffleTiles() {
+            tiles = tiles.sort(() => Math.random() - 0.5);
+            renderGrid();
+        }
+
+        renderGrid();
+    </script>
+</body>
+</html>
